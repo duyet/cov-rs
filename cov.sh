@@ -50,14 +50,14 @@ set -x
 
 # Install llvm-profdata and llvm-cov
 rustup component add llvm-tools-preview
-cargo install cargo-binutils rustfilt
+cargo install rustfilt
 
 # Test coverage
 echo "Run test and generate profraw files"
 RUSTFLAGS="-Cinstrument-coverage" \
   LLVM_PROFILE_FILE="$DIR/data-%p-%m.profraw" \
-  RUSTDOCFLAGS="-C instrument-coverage -Z unstable-options --persist-doctests target/debug/doctestbins" \
-  cargo test --tests --message-format=json |
+  RUSTDOCFLAGS="-Cinstrument-coverage -Zunstable-options --persist-doctests target/debug/doctestbins" \
+  cargo +nightly test --message-format=json |
   grep "{" | grep "}" |
   jq -r "select(.profile.test == true) | .filenames[]" |
   grep -v dSYM - >$DIR/the-builds
@@ -77,7 +77,7 @@ $(rustc --print target-libdir)/../bin/llvm-cov report \
   --instr-profile=$DIR/default.profdata \
   --summary-only \
   --Xdemangler=rustfilt \
-  $(for o in "${objects[@]}"; do [[ -x $o ]] && printf "%s %s " --object $o; done)
+  $(for o in "${objects[@]}" target/debug/doctestbins/*/rust_out; do [[ -x $o ]] && printf "%s %s " --object $o; done)
 
 $(rustc --print target-libdir)/../bin/llvm-cov show \
   --format html \
@@ -88,6 +88,6 @@ $(rustc --print target-libdir)/../bin/llvm-cov show \
   --output-dir=$DIR/cov \
   --show-line-counts-or-regions \
   --show-instantiations \
-  $(for o in "${objects[@]}"; do [[ -x $o ]] && printf "%s %s " --object $o || 1; done)
+  $(for o in "${objects[@]}" target/debug/doctestbins/*/rust_out; do [[ -x $o ]] && printf "%s %s " --object $o || 1; done)
 
-open $DIR/cov/index.html
+open $DIR/cov/index.html || echo "Open $DIR/cov/index.html"
