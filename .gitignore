@@ -10,3 +10,5 @@ Cargo.lock
 **/*.rs.bk
 
 **.prof*
+
+.DS_Store
