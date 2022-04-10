@@ -1,5 +1,4 @@
-# cov-rs
-Rust Source-based Code Coverage
+# Rust Source-based Code Coverage
 
 [![Test](https://github.com/duyet/cov-rs/actions/workflows/test.yaml/badge.svg)](https://github.com/duyet/cov-rs/actions/workflows/test.yaml)
 
@@ -42,9 +41,21 @@ jobs:
           export GITHUB_PULL_REQUEST=${{ env.GITHUB_PULL_REQUEST }}
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           export PROJECT_TITLE="Example build on ${{ matrix.os }}"
-          cd example && bash ../cov.sh
+          cd example && bash <(curl -s https://raw.githubusercontent.com/duyet/cov-rs/master/cov.sh)
 ```
 
-Set the `GITHUB_PULL_REQUEST`, `GITHUB_TOKEN` and `PROJECT_TITLE` (optional), the coverage script will comment the cov report on PR.
+The coverage report will be shown at Github Actions [logs](https://github.com/duyet/cov-rs/runs/5959116619?check_suite_focus=true).
+
+![](.github/cov-log.png)
+
+## Comment on Github pull requests
+
+If you set the `GITHUB_PULL_REQUEST`, `GITHUB_TOKEN` 
+and `PROJECT_TITLE` (optional), the coverage script will comment the cov report on PR, for example: 
+https://github.com/duyet/cov-rs/pull/3#issuecomment-1094174485
 
 ![](.github/cov-comment.png)
+
+# License
+
+MIT
