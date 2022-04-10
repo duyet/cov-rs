@@ -86,6 +86,7 @@ $(rustc --print target-libdir)/../bin/llvm-cov report \
 
 $(rustc --print target-libdir)/../bin/llvm-cov show \
   --format html \
+  --project-title "$PROJECT_TITLE" \
   --use-color \
   --ignore-filename-regex=$IGNORE \
   --instr-profile=$DIR/default.profdata \
@@ -93,6 +94,16 @@ $(rustc --print target-libdir)/../bin/llvm-cov show \
   --output-dir=$DIR/cov \
   --show-line-counts-or-regions \
   --show-instantiations \
-  $(for o in "${objects[@]}" target/debug/doctestbins/*/rust_out; do [[ -x $o ]] && printf "%s %s " --object $o || 1; done)
+  $(for o in "${objects[@]}" target/debug/doctestbins/*/rust_out; do [[ -x $o ]] && printf "%s %s " --object $o; done)
 
 open $DIR/cov/index.html || echo "Open $DIR/cov/index.html"
+
+# If is in Github pull request, comment
+if [ -n "${GITHUB_HEAD_REF}" ]; then
+  echo "Comment on pull request"
+  curl -s -X POST \
+    -H "Authorization: token ${GITHUB_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "{\"body\": \"$(sed -r 's/^<!doctype html>//' $DIR/cov/index.html)\"}" \
+    https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${GITHUB_PULL_REQUEST}/comments
+fi

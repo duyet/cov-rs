@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -25,4 +25,10 @@ jobs:
         uses: Swatinem/rust-cache@v1
 
       - name: Code Coverage
-        run: cd example && bash ../cov.sh
+        env:
+          GITHUB_PULL_REQUEST: ${{ github.event.pull_request.number }}
+        run: |
+          export GITHUB_PULL_REQUEST=${{ env.GITHUB_PULL_REQUEST }}
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          export PROJECT_TITLE="Example build on ${{ matrix.os }}"
+          cd example && bash ../cov.sh
