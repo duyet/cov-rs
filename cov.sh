@@ -29,10 +29,18 @@ help() {
    echo
 }
 
+init() {
+  mkdir -p $DIR || true
+  # Install nightly toolchain
+  rustup toolchain install nightly
+  # Install llvm-profdata and llvm-cov
+  rustup component add llvm-tools-preview
+  cargo install rustfilt
+}
+
 clean() {
   echo "Clean up previous build"
   cargo clean
-  mkdir -p $DIR || true
   rm -rf $DIR/cov 2>/dev/null
   rm $(find . -name "*.prof*" -maxdepth 10) 2>/dev/null
   echo "Done"
@@ -47,10 +55,7 @@ while getopts ":hc" option; do
 done
 
 set -x
-
-# Install llvm-profdata and llvm-cov
-rustup component add llvm-tools-preview
-cargo install rustfilt
+init
 
 # Test coverage
 echo "Run test and generate profraw files"
