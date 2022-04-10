@@ -31,6 +31,11 @@ help() {
 
 init() {
   mkdir -p $DIR || true
+  # Install nightly toolchain
+  rustup toolchain install nightly
+  # Install llvm-profdata and llvm-cov
+  rustup component add llvm-tools-preview
+  cargo install rustfilt
 }
 
 clean() {
@@ -51,10 +56,6 @@ done
 
 set -x
 init
-
-# Install llvm-profdata and llvm-cov
-rustup component add llvm-tools-preview
-cargo install rustfilt
 
 # Test coverage
 echo "Run test and generate profraw files"
