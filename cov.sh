@@ -4,9 +4,28 @@
 # Ref: https://doc.rust-lang.org/stable/rustc/instrument-coverage.html
 # Supported from Rust 1.60.0
 
+install() {
+  NAME=$1
+  echo "Installing $NAME ..."
+
+  if [[ $(which yum) ]]; then
+    yum install $NAME
+  elif [[ $(which apt-get) ]]; then
+    apt-get install -y $NAME
+  elif [[ $(which apt) ]]; then
+    apt install -y $NAME
+  elif [[ $(which brew) ]]; then
+    brew install $NAME
+  else
+     echo "error can't install package $NAME"
+     exit 1;
+  fi
+}
+
 command -v cargo >/dev/null 2>&1 || { echo >&2 "cargo is required"; exit 1; }
 command -v rustup >/dev/null 2>&1 || { echo >&2 "rustup is required"; exit 1; }
 command -v rustc >/dev/null 2>&1 || { echo >&2 "rustc is required"; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo >&2 "jq is required"; install jq; }
 
 IGNORE=".cargo|/rustc|.rustup|target"
 DIR=target
