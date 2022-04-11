@@ -8,7 +8,7 @@ command -v cargo >/dev/null 2>&1 || { echo >&2 "cargo is required"; exit 1; }
 command -v rustup >/dev/null 2>&1 || { echo >&2 "rustup is required"; exit 1; }
 command -v rustc >/dev/null 2>&1 || { echo >&2 "rustc is required"; exit 1; }
 
-IGNORE=".cargo|/rustc|.rustup"
+IGNORE=".cargo|/rustc|.rustup|target"
 DIR=target
 CRATES=$(cargo metadata --format-version=1 --no-deps | \
   jq -r '.workspace_members[]' | \

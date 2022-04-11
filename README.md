@@ -2,6 +2,10 @@
 
 [![Test](https://github.com/duyet/cov-rs/actions/workflows/test.yaml/badge.svg)](https://github.com/duyet/cov-rs/actions/workflows/test.yaml)
 
+A source-based code coverage enabled with `-C instrument-coverage`, 
+which uses LLVM's native, efficient coverage instrumentation to generate very precise coverage data.
+
+
 # Usage
 
 ```bash
