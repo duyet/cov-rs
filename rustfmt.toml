@@ -1,0 +1,30 @@
+# Rustfmt configuration for cov-rs
+# See: https://rust-lang.github.io/rustfmt/
+# Using stable features only for compatibility
+
+edition = "2021"
+
+# Line width
+max_width = 100
+
+# Formatting
+use_small_heuristics = "Default"
+
+# Reorder
+reorder_imports = true
+reorder_modules = true
+
+# Match
+match_block_trailing_comma = true
+
+# Misc
+newline_style = "Unix"
+use_field_init_shorthand = true
+use_try_shorthand = true
+
+# Note: For advanced formatting features, use `cargo +nightly fmt`
+# Nightly-only features include:
+# - wrap_comments, comment_width, normalize_comments
+# - imports_granularity, group_imports
+# - fn_single_line, where_single_line
+# - trailing_comma, trailing_semicolon
