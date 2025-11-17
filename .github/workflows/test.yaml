@@ -28,10 +28,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Rust Toolchain
+      - name: Setup Rust Stable Toolchain
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust Nightly Toolchain
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: stable
+          components: llvm-tools-preview
+
+      - name: Install rustfilt
+        run: cargo install rustfilt || true
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
@@ -80,8 +86,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Rust Toolchain
+      - name: Setup Rust Stable Toolchain
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust Nightly Toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: llvm-tools-preview
+
+      - name: Install rustfilt
+        run: cargo install rustfilt || true
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq

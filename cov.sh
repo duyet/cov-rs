@@ -64,28 +64,41 @@ init() {
   echo "==> Initializing coverage environment..."
   mkdir -p "$DIR" || true
 
-  # Install nightly toolchain
+  # Check if nightly toolchain is available
   if ! rustup toolchain list | grep -q nightly; then
     echo "Installing nightly toolchain..."
-    rustup toolchain install nightly
+    if ! rustup toolchain install nightly; then
+      echo "Error: Failed to install nightly toolchain" >&2
+      exit 1
+    fi
   else
-    echo "Nightly toolchain already installed"
+    echo "✓ Nightly toolchain already installed"
   fi
 
-  # Install llvm-tools-preview
-  if ! rustup component list --toolchain nightly | grep -q "llvm-tools-preview.*installed"; then
-    echo "Installing llvm-tools-preview..."
-    rustup component add llvm-tools-preview --toolchain nightly
+  # Check if llvm-tools-preview is installed
+  if ! rustup component list --toolchain nightly 2>/dev/null | grep -q "llvm-tools-preview.*installed"; then
+    echo "Installing llvm-tools-preview for nightly..."
+    if ! rustup component add llvm-tools-preview --toolchain nightly; then
+      echo "Error: Failed to install llvm-tools-preview" >&2
+      echo "Try manually: rustup component add llvm-tools-preview --toolchain nightly" >&2
+      exit 1
+    fi
   else
-    echo "llvm-tools-preview already installed"
+    echo "✓ llvm-tools-preview already installed"
   fi
 
-  # Install rustfilt if not present
+  # Check if rustfilt is available
   if ! command -v rustfilt >/dev/null 2>&1; then
-    echo "Installing rustfilt..."
-    cargo install rustfilt
+    echo "Installing rustfilt (this may take a minute)..."
+    if ! cargo install rustfilt 2>&1 | grep -q "already installed"; then
+      # Check if installation actually succeeded
+      if ! command -v rustfilt >/dev/null 2>&1; then
+        echo "Warning: rustfilt installation may have failed" >&2
+        echo "Coverage will still work, but symbols may not be demangled" >&2
+      fi
+    fi
   else
-    echo "rustfilt already installed"
+    echo "✓ rustfilt already installed"
   fi
 }
 
@@ -132,10 +145,13 @@ done
 
 init
 
-# Get LLVM tools path
-LLVM_TOOLS_DIR="$(rustc --print target-libdir)/../bin"
+# Get LLVM tools path - try both stable and nightly
+echo "==> Locating LLVM tools..."
+LLVM_TOOLS_DIR="$(rustc +nightly --print target-libdir 2>/dev/null || rustc --print target-libdir)/../bin"
+
 if [[ ! -d "$LLVM_TOOLS_DIR" ]]; then
   echo "Error: LLVM tools directory not found at $LLVM_TOOLS_DIR" >&2
+  echo "Tried: rustc +nightly --print target-libdir" >&2
   exit 1
 fi
 
@@ -143,9 +159,19 @@ LLVM_PROFDATA="$LLVM_TOOLS_DIR/llvm-profdata"
 LLVM_COV="$LLVM_TOOLS_DIR/llvm-cov"
 
 if [[ ! -x "$LLVM_PROFDATA" ]]; then
-  echo "Error: llvm-profdata not found. Install with: rustup component add llvm-tools-preview" >&2
+  echo "Error: llvm-profdata not found at $LLVM_PROFDATA" >&2
+  echo "" >&2
+  echo "Troubleshooting:" >&2
+  echo "1. Ensure llvm-tools-preview is installed:" >&2
+  echo "   rustup component add llvm-tools-preview --toolchain nightly" >&2
+  echo "2. Verify installation:" >&2
+  echo "   rustup component list --toolchain nightly | grep llvm-tools" >&2
+  echo "3. Check LLVM tools directory: ls -la $LLVM_TOOLS_DIR" >&2
   exit 1
 fi
+
+echo "✓ Found llvm-profdata: $LLVM_PROFDATA"
+echo "✓ Found llvm-cov: $LLVM_COV"
 
 # Test coverage
 echo "==> Running tests and generating profraw files..."
