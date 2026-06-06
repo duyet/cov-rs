@@ -213,21 +213,26 @@ mkdir -p "$DIR/cov" || true
 # Build object arguments
 object_args=()
 for obj in "${objects[@]}"; do
-  # On Windows, cargo JSON output may omit .exe; prefer the .exe path if it exists
-  if [[ -n "$EXE_SUFFIX" && -f "${obj}${EXE_SUFFIX}" ]]; then
-    obj="${obj}${EXE_SUFFIX}"
+  # On Windows, cargo JSON output may omit .exe; prefer the .exe path if it exists on disk
+  if [[ -n "$EXE_SUFFIX" ]]; then
+    resolved=$(find "$(dirname "$obj")" -maxdepth 1 -name "$(basename "$obj")${EXE_SUFFIX}" 2>/dev/null | head -1)
+    if [[ -n "$resolved" ]]; then
+      obj="$resolved"
+    fi
   fi
   if [[ -x "$obj" ]]; then
     object_args+=(--object "$obj")
   fi
 done
 
-# Add doctest binaries (try both with and without .exe suffix for Windows)
-for doctest in target/debug/doctestbins/*/rust_out target/debug/doctestbins/*/rust_out.exe; do
-  if [[ -f "$doctest" && -x "$doctest" ]]; then
-    object_args+=(--object "$doctest")
-  fi
-done
+# Add doctest binaries found under doctestbins directory
+if [[ -d "target/debug/doctestbins" ]]; then
+  while IFS= read -r doctest; do
+    if [[ -x "$doctest" ]]; then
+      object_args+=(--object "$doctest")
+    fi
+  done < <(find "target/debug/doctestbins" -maxdepth 2 -name "rust_out${EXE_SUFFIX}" -type f 2>/dev/null)
+fi
 
 if [[ ${#object_args[@]} -eq 0 ]]; then
   echo "Error: No executable test binaries found" >&2
