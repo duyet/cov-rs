@@ -213,14 +213,18 @@ mkdir -p "$DIR/cov" || true
 # Build object arguments
 object_args=()
 for obj in "${objects[@]}"; do
+  # On Windows, cargo JSON output may omit .exe; prefer the .exe path if it exists
+  if [[ -n "$EXE_SUFFIX" && -f "${obj}${EXE_SUFFIX}" ]]; then
+    obj="${obj}${EXE_SUFFIX}"
+  fi
   if [[ -x "$obj" ]]; then
     object_args+=(--object "$obj")
   fi
 done
 
-# Add doctest binaries
-for doctest in target/debug/doctestbins/*/rust_out; do
-  if [[ -x "$doctest" ]]; then
+# Add doctest binaries (try both with and without .exe suffix for Windows)
+for doctest in target/debug/doctestbins/*/rust_out target/debug/doctestbins/*/rust_out.exe; do
+  if [[ -f "$doctest" && -x "$doctest" ]]; then
     object_args+=(--object "$doctest")
   fi
 done
