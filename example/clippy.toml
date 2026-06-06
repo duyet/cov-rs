@@ -1,0 +1,15 @@
+# Clippy configuration for cov-rs example project
+# See: https://doc.rust-lang.org/clippy/lint_configuration.html
+
+# Warn on all clippy lints by default
+# This ensures we maintain high code quality
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 30
+
+# Allow arithmetic operations (common in this calculator example)
+# But we still want to be warned about potential overflows
+avoid-breaking-exported-api = true
+
+# Check private items for documentation
+check-private-items = false
