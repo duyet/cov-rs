@@ -155,8 +155,14 @@ if [[ ! -d "$LLVM_TOOLS_DIR" ]]; then
   exit 1
 fi
 
-LLVM_PROFDATA="$LLVM_TOOLS_DIR/llvm-profdata"
-LLVM_COV="$LLVM_TOOLS_DIR/llvm-cov"
+# On Windows, binaries have .exe extension
+EXE_SUFFIX=""
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+  EXE_SUFFIX=".exe"
+fi
+
+LLVM_PROFDATA="$LLVM_TOOLS_DIR/llvm-profdata${EXE_SUFFIX}"
+LLVM_COV="$LLVM_TOOLS_DIR/llvm-cov${EXE_SUFFIX}"
 
 if [[ ! -x "$LLVM_PROFDATA" ]]; then
   echo "Error: llvm-profdata not found at $LLVM_PROFDATA" >&2
@@ -189,7 +195,8 @@ fi
 
 # Find all profraw files
 echo "==> Merging profraw files into profdata..."
-mapfile -t profraw_files < <(find . -maxdepth 10 -name "*.profraw" -type f)
+profraw_files=()
+while IFS= read -r _f; do profraw_files+=("$_f"); done < <(find . -maxdepth 10 -name "*.profraw" -type f)
 
 if [[ ${#profraw_files[@]} -eq 0 ]]; then
   echo "Error: No profraw files found. Tests may have failed." >&2
@@ -199,7 +206,8 @@ fi
 "$LLVM_PROFDATA" merge "${profraw_files[@]}" --output "$DIR/default.profdata"
 
 # Read test binaries safely without eval
-mapfile -t objects < "$DIR/the-builds"
+objects=()
+while IFS= read -r _f; do objects+=("$_f"); done < "$DIR/the-builds"
 mkdir -p "$DIR/cov" || true
 
 # Build object arguments

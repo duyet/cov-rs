@@ -54,7 +54,8 @@ jobs:
 
       - name: Install jq (Windows)
         if: runner.os == 'Windows'
-        run: choco install jq -y
+        shell: pwsh
+        run: if (-not (Get-Command jq -ErrorAction SilentlyContinue)) { choco install jq -y }
 
       - name: Code Coverage
         shell: bash
